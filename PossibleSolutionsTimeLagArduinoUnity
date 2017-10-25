@@ -1,0 +1,85 @@
+Misschien kunnen we dit nog proberen. Ik heb geprobeerd te zoeken naar oplossingen,
+waarvan ik denk dat ze bruikbaar kunnen zijn. Maar aangezien ik niet bekend ben met Unity is het heel moeilijk te
+beoordelen. Hopelijk lukt het mij net als vorige keer. ;)
+
+-----------------------------OPLOSSING 1-----------------------------
+
+ using UnityEngine;
+ using System.Collections;
+ using System.IO.Ports;
+  
+ public class ArduinoConnect : MonoBehaviour {
+     SerialPort stream= new SerialPort("COM3", 19200);
+     string distance;
+  
+     // Use this for initialization
+     void Start () {
+        try{
+            stream.Open();
+            stream.DataReceived += DataReceivedHandler;
+        }
+        catch(Exception e){
+            Debug.Log("Could not open serial port: " + e.Message);
+ 
+        }
+  
+     }
+  
+     private void DataReceivedHandler(
+                         object sender,
+                         SerialDataReceivedEventArgs e)
+     {
+         SerialPort sp = (SerialPort)sender;
+         string distance = sp.ReadLine();
+         Debug.Log(distance);
+     }
+  
+ }
+ 
+ Persoon heeft het ook over het volgende: For completeness you should also handle the ErrorReceived 
+ event. Its delegate is a little different from the data one, so you'll need something like this:
+ 
+ stream.ErrorReceived += DataErrorReceivedHandler;
+ 
+ 
+     private void DataErrorReceivedHandler(object sender, 
+                                           SerialErrorReceivedEventArgs e)
+     {
+         Debug.Log("Serial port error:" e.EventType.ToString ("G"));            
+     }
+
+ -----------------------------OPLOSSING 2-----------------------------
+ 
+ Iemand schrijft: "Another way is to use ReadExisting and read it into a buffer then parse the buffer." 
+  
+-----------------------------OPLOSSING 3-----------------------------
+
+Persoon zegt erover: "Create a thread that deals with TimeException errors with Arduino."
+
+Thread myThread;
+ 
+ void Start(){
+  myThread = new Thread(new ThreadStart(GetArduino));
+  myThread.Start();
+ }
+ 
+ private void GetArduino(){
+  while(myThread.IsAlive())
+  {
+      string value = stream.ReadLine();
+  }
+  
+ -----------------------------OPLOSSING 4-----------------------------
+ 
+Iemand schrijft: "I've also seen a separate thread used that attempts to read a single character in a loop 
+(which handles the timeout exception and uses code in the catch to mark when last data was received etc). 
+That's basically the only way to do it if you have a protocol that has to react to individual characters 
+quickly. Letting it throw exceptions is ugly though (there's a bit of overhead to an exception being thrown)."
+
+ -----------------------------OPLOSSING 5-----------------------------
+
+Iemand schrijft: "make sure you have parity, stopbits data bits and handshake set correctly." Hebben wij dat?
+Kunnen wij dat dubbel checken?
+
+
+
